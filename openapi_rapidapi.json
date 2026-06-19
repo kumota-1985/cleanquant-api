@@ -1,0 +1,72 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "CleanQuant - Backtest-Ready Alternative Data",
+    "description": "Backtest-ready alternative data for indie quants: crypto funding rates, CFTC COT positioning, FRED macro rates, and Deribit DVOL. Cleaned, ISO-timestamped, point-in-time. JSON or CSV.",
+    "version": "1.0.0"
+  },
+  "servers": [
+    { "url": "https://cleanquant-api.onrender.com" }
+  ],
+  "paths": {
+    "/v1/catalog": {
+      "get": {
+        "summary": "List datasets",
+        "description": "List all available datasets and their symbols, markets, and currencies.",
+        "responses": { "200": { "description": "Catalog of datasets" } }
+      }
+    },
+    "/v1/funding": {
+      "get": {
+        "summary": "Crypto funding rates (8h)",
+        "description": "Perpetual-swap funding rate history (8-hour) from Binance public API.",
+        "parameters": [
+          { "name": "symbol", "in": "query", "required": true, "description": "Perp symbol, e.g. BTCUSDT", "schema": { "type": "string", "example": "BTCUSDT" } },
+          { "name": "start", "in": "query", "required": false, "description": "Start date YYYY-MM-DD", "schema": { "type": "string", "example": "2024-01-01" } },
+          { "name": "end", "in": "query", "required": false, "description": "End date YYYY-MM-DD", "schema": { "type": "string" } },
+          { "name": "format", "in": "query", "required": false, "description": "Output format", "schema": { "type": "string", "enum": ["json", "csv"], "default": "json" } }
+        ],
+        "responses": { "200": { "description": "Funding rate history" } }
+      }
+    },
+    "/v1/cot": {
+      "get": {
+        "summary": "CFTC COT positioning (weekly)",
+        "description": "CFTC Commitments of Traders speculator net positioning (public domain).",
+        "parameters": [
+          { "name": "market", "in": "query", "required": false, "description": "Market, e.g. EURUSD", "schema": { "type": "string", "example": "EURUSD" } },
+          { "name": "start", "in": "query", "required": false, "description": "Start date YYYY-MM-DD", "schema": { "type": "string" } },
+          { "name": "end", "in": "query", "required": false, "description": "End date YYYY-MM-DD", "schema": { "type": "string" } },
+          { "name": "format", "in": "query", "required": false, "description": "Output format", "schema": { "type": "string", "enum": ["json", "csv"], "default": "json" } }
+        ],
+        "responses": { "200": { "description": "COT positioning history" } }
+      }
+    },
+    "/v1/rates": {
+      "get": {
+        "summary": "FRED 3M rates & USD differential",
+        "description": "3-month interbank rates and USD rate differential (FRED / OECD).",
+        "parameters": [
+          { "name": "ccy", "in": "query", "required": false, "description": "Currency, e.g. EUR", "schema": { "type": "string", "example": "EUR" } },
+          { "name": "start", "in": "query", "required": false, "description": "Start date YYYY-MM-DD", "schema": { "type": "string" } },
+          { "name": "end", "in": "query", "required": false, "description": "End date YYYY-MM-DD", "schema": { "type": "string" } },
+          { "name": "format", "in": "query", "required": false, "description": "Output format", "schema": { "type": "string", "enum": ["json", "csv"], "default": "json" } }
+        ],
+        "responses": { "200": { "description": "Interest rate history" } }
+      }
+    },
+    "/v1/dvol": {
+      "get": {
+        "summary": "Deribit DVOL crypto implied vol",
+        "description": "Deribit DVOL crypto implied-volatility index for BTC and ETH.",
+        "parameters": [
+          { "name": "asset", "in": "query", "required": false, "description": "Asset: btc or eth", "schema": { "type": "string", "enum": ["btc", "eth"], "default": "btc" } },
+          { "name": "start", "in": "query", "required": false, "description": "Start date YYYY-MM-DD", "schema": { "type": "string" } },
+          { "name": "end", "in": "query", "required": false, "description": "End date YYYY-MM-DD", "schema": { "type": "string" } },
+          { "name": "format", "in": "query", "required": false, "description": "Output format", "schema": { "type": "string", "enum": ["json", "csv"], "default": "json" } }
+        ],
+        "responses": { "200": { "description": "DVOL index history" } }
+      }
+    }
+  }
+}

@@ -1,0 +1,15 @@
+# Render 用デプロイ設定(この flip_dataapi フォルダを web サービスとして公開)
+# 使い方: GitHub に push → Render で New > Blueprint → このリポジトリを選択
+services:
+  - type: web
+    name: cleanquant-api
+    runtime: python
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn app:app --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: OMNI_DATA_DIR
+        value: data                       # 同梱データ(flip_dataapi/data)を使う
+      # RapidAPI 出品時に設定(RapidAPI ダッシュボードの Proxy Secret と同じ値を入れる):
+      # - key: RAPIDAPI_PROXY_SECRET
+      #   value: <RapidAPIが発行するProxy Secret>

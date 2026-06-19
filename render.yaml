@@ -8,6 +8,8 @@ services:
     buildCommand: pip install -r requirements.txt
     startCommand: uvicorn app:app --host 0.0.0.0 --port $PORT
     envVars:
+      - key: PYTHON_VERSION
+        value: "3.11.9"                    # 3.14だとpydantic1.x系が壊れるので固定(runtime.txtは無視されたためenvで指定)
       - key: OMNI_DATA_DIR
         value: data                       # 同梱データ(flip_dataapi/data)を使う
       # RapidAPI 出品時に設定(RapidAPI ダッシュボードの Proxy Secret と同じ値を入れる):

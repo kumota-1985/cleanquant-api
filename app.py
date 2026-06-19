@@ -49,20 +49,18 @@ app = FastAPI(
 #  auth (freemium): DEMO = capped rows / PRO = full                            #
 # --------------------------------------------------------------------------- #
 def auth(x_api_key: Optional[str], rapid_secret: Optional[str] = None) -> bool:
-    """True = pro(full), False = demo(capped)。
-    RapidAPI出品時: RAPIDAPI_PROXY_SECRET を設定すると RapidAPI プロキシ経由のみ許可
-    (課金/レート制限は RapidAPI 側が担うので、一致すれば全件 pro)。"""
-    if RAPIDAPI_SECRET:
-        if rapid_secret == RAPIDAPI_SECRET:
-            return True
-        raise HTTPException(status_code=403, detail="Requests must go through the RapidAPI marketplace.")
-    if x_api_key is None:
-        raise HTTPException(status_code=401, detail="Missing X-API-Key header. Use 'DEMO' to try.")
-    if x_api_key in PRO_KEYS:
+    """True = pro(full) / False = demo(capped)。2チャネル同時対応:
+    ① RapidAPI 経由 : RAPIDAPI_PROXY_SECRET 一致 → pro(課金/制限はRapidAPI側)
+    ② 直販         : 自社サイト+Stripe で発行した鍵(CLEANQUANT_KEYS)→ pro
+    ③ お試し       : X-API-Key=DEMO → demo(行数上限) / それ以外 → 拒否"""
+    if RAPIDAPI_SECRET and rapid_secret == RAPIDAPI_SECRET:
+        return True
+    if x_api_key and x_api_key in PRO_KEYS:
         return True
     if x_api_key == "DEMO":
         return False
-    raise HTTPException(status_code=403, detail="Invalid API key.")
+    raise HTTPException(status_code=401,
+                        detail="Missing/invalid API key. Use 'DEMO' to try, or subscribe for a key.")
 
 
 def _read(*parts) -> pd.DataFrame:

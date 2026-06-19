@@ -3,63 +3,91 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>CleanQuant — Backtest-ready alternative data, one API call</title>
+<title>CleanQuant — Point-in-Time Alternative Data for Quants</title>
 <style>
   :root { --bg:#0b0d12; --fg:#e8ecf3; --mut:#8b93a7; --acc:#4ade80; --card:#141822; --line:#222838; }
   * { box-sizing:border-box; }
-  body { margin:0; font:16px/1.6 -apple-system,Segoe UI,Roboto,sans-serif; background:var(--bg); color:var(--fg); }
-  .wrap { max-width:760px; margin:0 auto; padding:64px 24px 96px; }
+  body { margin:0; font:16px/1.65 -apple-system,Segoe UI,Roboto,sans-serif; background:var(--bg); color:var(--fg); }
+  .wrap { max-width:820px; margin:0 auto; padding:60px 24px 100px; }
   .tag { color:var(--acc); font-weight:600; letter-spacing:.04em; font-size:13px; text-transform:uppercase; }
-  h1 { font-size:40px; line-height:1.15; margin:12px 0 8px; }
+  h1 { font-size:40px; line-height:1.12; margin:12px 0 10px; }
   h1 .g { color:var(--acc); }
-  .sub { color:var(--mut); font-size:19px; margin:0 0 28px; }
-  .card { background:var(--card); border:1px solid var(--line); border-radius:14px; padding:22px 24px; margin:18px 0; }
+  .sub { color:var(--mut); font-size:19px; margin:0 0 26px; }
+  h2 { font-size:22px; margin:40px 0 14px; }
+  .card { background:var(--card); border:1px solid var(--line); border-radius:14px; padding:22px 24px; margin:16px 0; }
   code { background:#0e1220; border:1px solid var(--line); border-radius:6px; padding:2px 7px; color:#cfe8ff; font-size:14px; }
-  ul { padding-left:18px; } li { margin:6px 0; }
-  .price { font-size:15px; color:var(--mut); }
-  .price b { color:var(--fg); font-size:22px; }
-  form { display:flex; gap:10px; margin-top:14px; flex-wrap:wrap; }
-  input[type=email] { flex:1; min-width:220px; background:#0e1220; border:1px solid var(--line); color:var(--fg);
-    border-radius:10px; padding:13px 14px; font-size:15px; }
-  button { background:var(--acc); color:#05210f; border:0; border-radius:10px; padding:13px 20px; font-weight:700;
-    font-size:15px; cursor:pointer; }
-  .foot { color:var(--mut); font-size:13px; margin-top:10px; }
-  .grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
-  @media(max-width:560px){ .grid{grid-template-columns:1fr;} h1{font-size:32px;} }
-  .mut { color:var(--mut); }
+  pre { background:#0e1220; border:1px solid var(--line); border-radius:10px; padding:14px; overflow:auto; color:#cfe8ff; font-size:14px; }
+  .grid2 { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+  .plans { display:grid; grid-template-columns:repeat(3,1fr); gap:14px; }
+  .plan { background:var(--card); border:1px solid var(--line); border-radius:14px; padding:20px; text-align:center; }
+  .plan.feat { border-color:var(--acc); }
+  .plan .name { font-weight:700; font-size:15px; letter-spacing:.04em; text-transform:uppercase; color:var(--acc); }
+  .plan .price { font-size:30px; font-weight:800; margin:8px 0 2px; }
+  .plan .price small { font-size:14px; color:var(--mut); font-weight:500; }
+  .plan ul { text-align:left; padding-left:18px; color:var(--mut); font-size:14px; min-height:84px; }
+  .btn { display:block; background:var(--acc); color:#05210f; border:0; border-radius:10px; padding:12px; font-weight:700;
+    font-size:15px; cursor:pointer; text-decoration:none; margin-top:8px; }
+  .btn.ghost { background:transparent; color:var(--acc); border:1px solid var(--acc); }
+  .mut { color:var(--mut); } .foot { color:var(--mut); font-size:13px; }
+  @media(max-width:620px){ .plans,.grid2{grid-template-columns:1fr;} h1{font-size:32px;} }
 </style>
 </head>
 <body>
 <div class="wrap">
-  <div class="tag">Alternative data · for indie quants</div>
-  <h1>Stop scraping. <span class="g">Start testing.</span></h1>
-  <p class="sub">Backtest-ready alternative data in one API call — cleaned, ISO-timestamped, point-in-time. No look-ahead, no CSV wrangling.</p>
+  <div class="tag">Point-in-time alternative data · for quants</div>
+  <h1>Your backtest is <span class="g">eating future data.</span></h1>
+  <p class="sub">Scraped FRED series get silently revised. Raw funding history leaks info that didn't exist at trade time. Your Sharpe looks 1.5+ — then evaporates live. CleanQuant returns <b>only what the market actually knew on a given date</b>.</p>
 
   <div class="card">
-    <div class="grid">
-      <div>📈 <b>Crypto funding rates</b><br><span class="mut">15+ perps, full 8h history</span></div>
-      <div>🏦 <b>CFTC COT positioning</b><br><span class="mut">Speculator net, weekly</span></div>
-      <div>🌐 <b>FRED macro rates</b><br><span class="mut">3M rates + USD carry diff</span></div>
-      <div>📊 <b>Deribit DVOL</b><br><span class="mut">Crypto implied-vol index</span></div>
+    <code>GET /v1/cot?market=EURUSD&as_of=2024-06-01</code>
+    <p class="mut" style="margin:10px 0 0">Add <code>?as_of=DATE</code> to any endpoint → a true point-in-time snapshot. No look-ahead bias. JSON or CSV, straight into pandas.</p>
+  </div>
+
+  <h2>Datasets</h2>
+  <div class="card grid2">
+    <div>📈 <b>Crypto funding rates</b><br><span class="mut">8h history, 15+ perps (Binance)</span></div>
+    <div>🏦 <b>CFTC COT positioning</b><br><span class="mut">Weekly, point-in-time by publish date</span></div>
+    <div>🌐 <b>FRED macro rates</b><br><span class="mut">3M rates + USD carry diff</span></div>
+    <div>📊 <b>Deribit DVOL</b><br><span class="mut">BTC/ETH implied-vol index</span></div>
+  </div>
+
+  <h2>Pricing</h2>
+  <div class="plans">
+    <div class="plan">
+      <div class="name">Free</div>
+      <div class="price">$0</div>
+      <ul><li>Try every dataset</li><li>Capped results</li><li>API key: <code>DEMO</code></li></ul>
+      <a class="btn ghost" href="#start">Start free</a>
+    </div>
+    <div class="plan feat">
+      <div class="name">Indie</div>
+      <div class="price">$49<small>/mo</small></div>
+      <ul><li>Full point-in-time</li><li>All datasets, full history</li><li>~10k requests/day</li></ul>
+      <!-- TODO: replace with your Stripe Payment Link -->
+      <a class="btn" href="STRIPE_INDIE_LINK">Subscribe</a>
+    </div>
+    <div class="plan">
+      <div class="name">Pro</div>
+      <div class="price">$149<small>/mo</small></div>
+      <ul><li>Everything in Indie</li><li>High-frequency quota</li><li>Priority support</li></ul>
+      <!-- TODO: replace with your Stripe Payment Link -->
+      <a class="btn" href="STRIPE_PRO_LINK">Subscribe</a>
     </div>
   </div>
+  <p class="foot" style="text-align:center">Also on the RapidAPI marketplace — <a href="RAPIDAPI_LISTING_URL" style="color:var(--acc)">subscribe there</a> if you prefer.</p>
 
+  <h2 id="start">How it works</h2>
   <div class="card">
-    <code>GET /v1/funding?symbol=BTCUSDT&format=csv</code>
-    <p class="mut" style="margin:10px 0 0">JSON or CSV. Free demo key. One endpoint per dataset. Built by a quant who got tired of assembling this by hand.</p>
+    <ol class="mut">
+      <li><b>Try free:</b> call any endpoint with header <code>X-API-Key: DEMO</code>.</li>
+      <li><b>Subscribe</b> (Stripe) → we email your personal API key.</li>
+      <li><b>Call</b> with your key:</li>
+    </ol>
+    <pre>curl -H "X-API-Key: YOUR_KEY" \
+  "https://cleanquant-api.onrender.com/v1/cot?market=EURUSD&as_of=2024-06-01"</pre>
   </div>
 
-  <div class="card">
-    <p class="price">Founding price <b>$9/mo</b> <span class="mut">— first 50 users, locked forever.</span></p>
-    <form action="https://formspree.io/f/xjgdqdql" method="POST">
-      <input type="email" name="email" placeholder="you@email.com" required />
-      <input type="hidden" name="_subject" value="CleanQuant waitlist signup" />
-      <button type="submit">Join the waitlist →</button>
-    </form>
-    <p class="foot">No spam. One email when the API opens. Reply to tell us which dataset you need most.</p>
-  </div>
-
-  <p class="foot">Sources: Binance public API · CFTC (public domain) · FRED/OECD · Deribit public API. Independent project, not affiliated with these providers.</p>
+  <p class="foot">Sources: Binance · CFTC (public domain) · FRED/OECD · Deribit. Independent project, not affiliated with these providers.</p>
 </div>
 </body>
 </html>

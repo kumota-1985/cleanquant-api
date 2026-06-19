@@ -84,6 +84,24 @@ def _slice_time(df: pd.DataFrame, col: str, start: Optional[str], end: Optional[
     return df
 
 
+RATES_PUB_LAG_DAYS = 45    # FRED月次金利のおおよその公表ラグ(真のヴィンテージはALFRED連携で対応予定)
+
+
+def _as_of_filter(df: pd.DataFrame, avail_col: str, as_of: Optional[str], lag_days: int = 0):
+    """Point-in-Time: as_of 時点で『公開済み』だった行だけ残す(ルックアヘッド・バイアス排除)。"""
+    if not as_of:
+        return df
+    cutoff = pd.to_datetime(as_of, errors="coerce")
+    if pd.isna(cutoff):
+        raise HTTPException(status_code=422, detail="as_of must be a date (YYYY-MM-DD)")
+    a = pd.to_datetime(df[avail_col], errors="coerce")
+    if getattr(a.dt, "tz", None) is not None:
+        a = a.dt.tz_localize(None)
+    if lag_days:
+        a = a + pd.Timedelta(days=lag_days)
+    return df[a <= cutoff]
+
+
 def _check_format(fmt: str):
     if fmt not in ("json", "csv"):
         raise HTTPException(status_code=422, detail="format must be 'json' or 'csv'")
@@ -151,24 +169,28 @@ def catalog():
 @app.get("/v1/funding")
 def funding(symbol: str = Query(...),
             start: Optional[str] = None, end: Optional[str] = None,
+            as_of: Optional[str] = None,
             format: str = "json",
             x_api_key: Optional[str] = Header(None),
             x_rapidapi_proxy_secret: Optional[str] = Header(None)):
-    """無期限スワップの資金調達率(8時間ごと)。"""
+    """無期限スワップの資金調達率(8時間ごと)。as_of=YYYY-MM-DD でその時点までに観測済みの行のみ(PIT)。"""
     _check_format(format)
     pro = auth(x_api_key, x_rapidapi_proxy_secret)
     df = _read("crypto", symbol.upper(), "funding.parquet")[["time", "fundingRate", "symbol"]]
     df = _slice_time(df, "time", start, end)
+    df = _as_of_filter(df, "time", as_of)
     return _respond(df, format, pro, "time")
 
 
 @app.get("/v1/cot")
 def cot(market: Optional[str] = None,
         start: Optional[str] = None, end: Optional[str] = None,
+        as_of: Optional[str] = None,
         format: str = "json",
         x_api_key: Optional[str] = Header(None),
         x_rapidapi_proxy_secret: Optional[str] = Header(None)):
-    """CFTC COT 投機筋ネットポジショニング(net_frac = 投機筋ネット比率)。"""
+    """CFTC COT 投機筋ネットポジショニング(net_frac = 投機筋ネット比率)。
+    as_of=YYYY-MM-DD で『その日までに公表(avail)済み』の週次レポートのみ = 真のPoint-in-Time。"""
     _check_format(format)
     pro = auth(x_api_key, x_rapidapi_proxy_secret)
     df = _read("cot", "cot_fx.parquet")
@@ -177,16 +199,19 @@ def cot(market: Optional[str] = None,
         if df.empty:
             raise HTTPException(status_code=404, detail=f"unknown market: {market}")
     df = _slice_time(df, "date", start, end)
+    df = _as_of_filter(df, "avail", as_of)
     return _respond(df, format, pro, "date")
 
 
 @app.get("/v1/rates")
 def rates(ccy: Optional[str] = None,
           start: Optional[str] = None, end: Optional[str] = None,
+          as_of: Optional[str] = None,
           format: str = "json",
           x_api_key: Optional[str] = Header(None),
           x_rapidapi_proxy_secret: Optional[str] = Header(None)):
-    """FRED/OECD 3ヶ月金利と対USD金利差(diff)。"""
+    """FRED/OECD 3ヶ月金利と対USD金利差(diff)。as_of=YYYY-MM-DD で公表ラグ込みのPIT近似
+    (真のヴィンテージ=ALFRED連携は今後)。"""
     _check_format(format)
     pro = auth(x_api_key, x_rapidapi_proxy_secret)
     df = _read("macro", "rates_fred.parquet")
@@ -195,20 +220,23 @@ def rates(ccy: Optional[str] = None,
         if df.empty:
             raise HTTPException(status_code=404, detail=f"unknown ccy: {ccy}")
     df = _slice_time(df, "date", start, end)
+    df = _as_of_filter(df, "date", as_of, lag_days=RATES_PUB_LAG_DAYS)
     return _respond(df, format, pro, "date")
 
 
 @app.get("/v1/dvol")
 def dvol(asset: str = "btc",
          start: Optional[str] = None, end: Optional[str] = None,
+         as_of: Optional[str] = None,
          format: str = "json",
          x_api_key: Optional[str] = Header(None),
          x_rapidapi_proxy_secret: Optional[str] = Header(None)):
-    """Deribit DVOL(クリプトのインプライド・ボラ指数)。"""
+    """Deribit DVOL(クリプトのインプライド・ボラ指数)。as_of=YYYY-MM-DD でその時点までの観測のみ(PIT)。"""
     if asset.lower() not in ("btc", "eth"):
         raise HTTPException(status_code=422, detail="asset must be 'btc' or 'eth'")
     _check_format(format)
     pro = auth(x_api_key, x_rapidapi_proxy_secret)
     df = _read("macro", f"dvol_{asset.lower()}.parquet")[["time", "dvol"]]
     df = _slice_time(df, "time", start, end)
+    df = _as_of_filter(df, "time", as_of)
     return _respond(df, format, pro, "time")

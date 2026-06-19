@@ -1,9 +1,9 @@
 {
   "openapi": "3.0.3",
   "info": {
-    "title": "CleanQuant - Backtest-Ready Alternative Data",
-    "description": "Backtest-ready alternative data for indie quants: crypto funding rates, CFTC COT positioning, FRED macro rates, and Deribit DVOL. Cleaned, ISO-timestamped, point-in-time. JSON or CSV.",
-    "version": "1.0.0"
+    "title": "CleanQuant — Point-in-Time Alternative Data",
+    "description": "Backtest-ready alternative data with TRUE point-in-time: add ?as_of=YYYY-MM-DD and every endpoint returns only what was actually known on that date — no look-ahead bias. Crypto funding rates, CFTC COT positioning, FRED macro rates, Deribit DVOL. Cleaned, ISO-timestamped. JSON or CSV.",
+    "version": "1.1.0"
   },
   "servers": [
     { "url": "https://cleanquant-api.onrender.com" }
@@ -12,58 +12,62 @@
     "/v1/catalog": {
       "get": {
         "summary": "List datasets",
-        "description": "List all available datasets and their symbols, markets, and currencies.",
+        "description": "List all available datasets and their symbols, markets, and currencies. No parameters.",
         "responses": { "200": { "description": "Catalog of datasets" } }
       }
     },
     "/v1/funding": {
       "get": {
         "summary": "Crypto funding rates (8h)",
-        "description": "Perpetual-swap funding rate history (8-hour) from Binance public API.",
+        "description": "Perpetual-swap funding rate history (source: Binance public API).",
         "parameters": [
           { "name": "symbol", "in": "query", "required": true, "description": "Perp symbol, e.g. BTCUSDT", "schema": { "type": "string", "example": "BTCUSDT" } },
-          { "name": "start", "in": "query", "required": false, "description": "Start date YYYY-MM-DD", "schema": { "type": "string", "example": "2024-01-01" } },
+          { "name": "as_of", "in": "query", "required": false, "description": "Point-in-time: only data observed on/before this date (no look-ahead)", "schema": { "type": "string", "example": "2024-06-01" } },
+          { "name": "start", "in": "query", "required": false, "description": "Start date YYYY-MM-DD", "schema": { "type": "string" } },
           { "name": "end", "in": "query", "required": false, "description": "End date YYYY-MM-DD", "schema": { "type": "string" } },
-          { "name": "format", "in": "query", "required": false, "description": "Output format", "schema": { "type": "string", "enum": ["json", "csv"], "default": "json" } }
+          { "name": "format", "in": "query", "required": false, "description": "json or csv", "schema": { "type": "string", "enum": ["json", "csv"], "default": "json" } }
         ],
         "responses": { "200": { "description": "Funding rate history" } }
       }
     },
     "/v1/cot": {
       "get": {
-        "summary": "CFTC COT positioning (weekly)",
-        "description": "CFTC Commitments of Traders speculator net positioning (public domain).",
+        "summary": "CFTC COT positioning (weekly, point-in-time)",
+        "description": "CFTC speculator net positioning (public domain). With ?as_of=, returns only reports already PUBLISHED by that date (uses real release lag) — true point-in-time.",
         "parameters": [
-          { "name": "market", "in": "query", "required": false, "description": "Market, e.g. EURUSD", "schema": { "type": "string", "example": "EURUSD" } },
+          { "name": "market", "in": "query", "required": false, "description": "e.g. EURUSD", "schema": { "type": "string", "example": "EURUSD" } },
+          { "name": "as_of", "in": "query", "required": false, "description": "Point-in-time: only reports published on/before this date", "schema": { "type": "string", "example": "2024-06-01" } },
           { "name": "start", "in": "query", "required": false, "description": "Start date YYYY-MM-DD", "schema": { "type": "string" } },
           { "name": "end", "in": "query", "required": false, "description": "End date YYYY-MM-DD", "schema": { "type": "string" } },
-          { "name": "format", "in": "query", "required": false, "description": "Output format", "schema": { "type": "string", "enum": ["json", "csv"], "default": "json" } }
+          { "name": "format", "in": "query", "required": false, "description": "json or csv", "schema": { "type": "string", "enum": ["json", "csv"], "default": "json" } }
         ],
         "responses": { "200": { "description": "COT positioning history" } }
       }
     },
     "/v1/rates": {
       "get": {
-        "summary": "FRED 3M rates & USD differential",
-        "description": "3-month interbank rates and USD rate differential (FRED / OECD).",
+        "summary": "FRED 3M rates & USD differential (point-in-time)",
+        "description": "3-month interbank rates and USD differential (FRED / OECD). ?as_of= applies a publication lag (true ALFRED vintages coming soon).",
         "parameters": [
-          { "name": "ccy", "in": "query", "required": false, "description": "Currency, e.g. EUR", "schema": { "type": "string", "example": "EUR" } },
+          { "name": "ccy", "in": "query", "required": false, "description": "e.g. EUR", "schema": { "type": "string", "example": "EUR" } },
+          { "name": "as_of", "in": "query", "required": false, "description": "Point-in-time (publication-lag aware)", "schema": { "type": "string", "example": "2024-06-01" } },
           { "name": "start", "in": "query", "required": false, "description": "Start date YYYY-MM-DD", "schema": { "type": "string" } },
           { "name": "end", "in": "query", "required": false, "description": "End date YYYY-MM-DD", "schema": { "type": "string" } },
-          { "name": "format", "in": "query", "required": false, "description": "Output format", "schema": { "type": "string", "enum": ["json", "csv"], "default": "json" } }
+          { "name": "format", "in": "query", "required": false, "description": "json or csv", "schema": { "type": "string", "enum": ["json", "csv"], "default": "json" } }
         ],
         "responses": { "200": { "description": "Interest rate history" } }
       }
     },
     "/v1/dvol": {
       "get": {
-        "summary": "Deribit DVOL crypto implied vol",
-        "description": "Deribit DVOL crypto implied-volatility index for BTC and ETH.",
+        "summary": "Deribit DVOL crypto implied vol (point-in-time)",
+        "description": "Deribit DVOL implied-volatility index for BTC and ETH. ?as_of= returns only observations up to that date.",
         "parameters": [
-          { "name": "asset", "in": "query", "required": false, "description": "Asset: btc or eth", "schema": { "type": "string", "enum": ["btc", "eth"], "default": "btc" } },
+          { "name": "asset", "in": "query", "required": false, "description": "btc or eth", "schema": { "type": "string", "enum": ["btc", "eth"], "default": "btc" } },
+          { "name": "as_of", "in": "query", "required": false, "description": "Point-in-time", "schema": { "type": "string", "example": "2024-06-01" } },
           { "name": "start", "in": "query", "required": false, "description": "Start date YYYY-MM-DD", "schema": { "type": "string" } },
           { "name": "end", "in": "query", "required": false, "description": "End date YYYY-MM-DD", "schema": { "type": "string" } },
-          { "name": "format", "in": "query", "required": false, "description": "Output format", "schema": { "type": "string", "enum": ["json", "csv"], "default": "json" } }
+          { "name": "format", "in": "query", "required": false, "description": "json or csv", "schema": { "type": "string", "enum": ["json", "csv"], "default": "json" } }
         ],
         "responses": { "200": { "description": "DVOL index history" } }
       }

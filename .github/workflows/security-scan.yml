@@ -1,0 +1,27 @@
+name: Security scan (OWASP ZAP)
+
+# 公開APIに対する脆弱性診断(OWASP ZAP baseline)を定期実行する。
+# = クレジット取引セキュリティ申告の「脆弱性診断を定期的に実施」を実際に満たす。
+
+on:
+  schedule:
+    - cron: "0 7 * * 1"        # 毎週月曜 07:00 UTC に自動実行
+  workflow_dispatch: {}          # 手動実行も可(Actions → Run workflow)
+
+permissions:
+  contents: read
+  issues: write                  # 検出結果を Issue として記録する
+
+jobs:
+  zap_baseline:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: OWASP ZAP Baseline Scan
+        uses: zaproxy/action-baseline@v0.12.0
+        with:
+          target: "https://cleanquant-api.onrender.com"
+          fail_action: false      # 検出があってもワークフローは失敗にしない(定期診断が目的)
+          allow_issue_writing: true
+          artifact_name: zap-baseline-report

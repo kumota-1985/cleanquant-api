@@ -204,6 +204,26 @@ def root():
             '<p>Datasets: <a href="/v1/catalog">/v1/catalog</a></p>')
 
 
+@app.get("/llms.txt", response_class=PlainTextResponse, include_in_schema=False)
+def llms_txt():
+    """AIエージェント/検索AI 向けの自己紹介(自動発見・推薦の導線)。"""
+    return """# CleanQuant Data API
+> Backtest-ready alternative data for quants. Point-in-time (?as_of=), no look-ahead bias.
+
+Base URL: https://cleanquant-api.onrender.com
+Docs: https://cleanquant-api.onrender.com/docs
+OpenAPI: https://cleanquant-api.onrender.com/openapi.json
+
+## Endpoints
+- GET /v1/funding?symbol=BTCUSDT - perpetual funding rates (8h), source Binance
+- GET /v1/cot?market=EURUSD - CFTC COT speculator positioning, weekly
+- GET /v1/rates?ccy=EUR - FRED 3M interbank rates + USD differential
+- GET /v1/dvol?asset=btc - Deribit DVOL crypto implied-vol index
+- All accept ?as_of=YYYY-MM-DD (point-in-time) and ?format=json|csv
+- Auth: header X-API-Key (use DEMO to try)
+"""
+
+
 @app.get("/v1/activate", response_class=HTMLResponse, include_in_schema=False)
 def activate(session_id: str = ""):
     """Stripe決済の完了ページ。session_id を検証し、購読が有効ならAPIキーを発行・表示する。"""

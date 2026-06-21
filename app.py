@@ -207,6 +207,12 @@ def root():
             '<p>Datasets: <a href="/v1/catalog">/v1/catalog</a></p>')
 
 
+@app.get("/ping", include_in_schema=False)
+def ping():
+    """ヘルスチェック用(RapidAPI/Render 監視)。データに触れず即200を返す。"""
+    return {"status": "ok"}
+
+
 @app.get("/llms.txt", response_class=PlainTextResponse, include_in_schema=False)
 def llms_txt():
     """AIエージェント/検索AI 向けの自己紹介(自動発見・推薦の導線)。"""

@@ -255,17 +255,22 @@ def refresh_dvol():
 
 
 # --------------------------------------------------------------------------- #
+# funding(Binance) / dvol(Deribit) は商用再配布が両取引所のToSで禁止のため配信停止 →
+# 再取得もしない(refresh_funding/refresh_dvol 関数は残置だが main からは呼ばない)。
+RESTRICTED = {"funding", "dvol"}
+
+
 def main():
-    targets = [a.lower() for a in sys.argv[1:]] or ["funding", "rates", "cot", "dvol"]
+    targets = [a.lower() for a in sys.argv[1:]] or ["rates", "cot"]
+    skipped = [t for t in targets if t in RESTRICTED]
+    targets = [t for t in targets if t not in RESTRICTED]
+    if skipped:
+        print(f"skip (redistribution ToS): {skipped}")
     print(f"refresh targets: {targets}  -> {DATA}")
-    if "funding" in targets:
-        refresh_funding()
     if "rates" in targets:
         refresh_rates()
     if "cot" in targets:
         refresh_cot()
-    if "dvol" in targets:
-        refresh_dvol()
     print("REFRESH COMPLETE")
 
 
